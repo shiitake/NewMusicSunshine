@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>Ninject.Extensions.Quartz</id>
+    <version>0.2.0.0</version>
+    <title>Ninject.Extensions.Quartz</title>
+    <authors>Mark Huber</authors>
+    <owners>Mark Huber</owners>
+    <licenseUrl>https://github.com/dtinteractive/Ninject.Extensions.Quartz/blob/master/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Ninject.Extensions.Quartz provides a Quartz JobFactory to create your Quartz jobs from your Ninject IoC container</description>
+    <releaseNotes>0.2.0 - Added assemblies for 3.5, 4.0, and 4.5</releaseNotes>
+    <copyright>Copyright Dealertrack Interactive 2013</copyright>
+    <tags>Quartz Ninject</tags>
+    <dependencies>
+      <dependency id="Ninject" version="3.0.1.10" />
+      <dependency id="Quartz" version="2.1.2" />
+    </dependencies>
+  </metadata>
+</package>
