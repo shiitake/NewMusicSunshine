@@ -16,7 +16,14 @@ namespace NewReleasesConsole
         {
             var newReleases = new GetNewReleases();
             var results = newReleases.ArtistSearch("Motley Crue");
-            Console.WriteLine(results);
+            if (results.Count > 0)
+            {
+                Console.WriteLine("Possible Artists:");
+                foreach (Artist result in results)
+                {
+                    Console.WriteLine(result.Name);
+                }
+            }
             Console.ReadLine();
         }
     }

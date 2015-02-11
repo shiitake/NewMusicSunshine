@@ -14,6 +14,8 @@ using DiscogsNet;
 using DiscogsNet.Api;
 using DiscogsNet.Model.Search;
 using DiscogsNet.User;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 
 namespace NewReleasesConsole
@@ -27,7 +29,7 @@ namespace NewReleasesConsole
         public static string AccessTokenURL = @"http://api.discogs.com/oauth/access_token";
         public static string UserAgent = @"NewMusicSunshine/0.1 +https://github.com/shiitake/NewMusicSunshine";
 
-        public string ArtistSearch(string artist)
+        public List<Artist> ArtistSearch(string artist)
         {
             var authorization = @"Discogs key=" + ConsumerKey + ",secret=" + ConsumerSecret;
             var url = BuildSearchUrl(artist);
@@ -43,7 +45,17 @@ namespace NewReleasesConsole
                 using (Stream getStream = resp.GetResponseStream())
                 {
                     StreamReader readStream = new StreamReader(getStream, true);
-                    return readStream.ReadToEnd();
+                    var result = readStream.ReadToEnd();
+
+                    JObject json = JObject.Parse(result);
+                    List<JToken> searchResults = json["results"].Children().ToList();
+                    List<Artist> artistList = new List<Artist>();
+                    foreach (JToken searchResult in searchResults)
+                    {
+                        Artist artistResult = JsonConvert.DeserializeObject<Artist>(searchResult.ToString());
+                        artistList.Add(artistResult);
+                    }
+                    return artistList;
                 }
             }
         }
