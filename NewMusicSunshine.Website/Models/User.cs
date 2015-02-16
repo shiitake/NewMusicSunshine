@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Web;
+using System.Configuration;
 
 namespace NewMusicSunshine.Website.Models
 {
@@ -19,6 +20,10 @@ namespace NewMusicSunshine.Website.Models
         [Display(Name = "Password")]
         public string Password { get; set; }
 
+        [Required]
+        [Display(Name = "Email Address")]
+        public string EmailAddress { get; set; }
+        
         [Display(Name = "Remember on this computer")]
         public bool RememberMe { get; set; }
 
@@ -30,9 +35,9 @@ namespace NewMusicSunshine.Website.Models
         /// <returns>True if user exist and password is correct</returns>
         public bool IsValid(string _username, string _password)
         {
-            using (var cn = new SqlConnection(@"Data Source=(LocalDB)\v11.0;AttachDbFilename" +
-              @"='C:\Tutorials\1 - Creating a custom user login form\Creating " +
-              @"a custom user login form\App_Data\Database1.mdf';Integrated Security=True"))
+            var cs = ConfigurationManager.ConnectionStrings["SunshineDbConnection"].ConnectionString;
+
+            using (var cn = new SqlConnection(cs))
             {
                 string _sql = @"SELECT [Username] FROM [dbo].[System_Users] " +
                        @"WHERE [Username] = @u AND [Password] = @p";
@@ -59,5 +64,31 @@ namespace NewMusicSunshine.Website.Models
                 }
             }
         }
+
+        public bool IsDuplicate(string _username)
+        {
+            var cs = ConfigurationManager.ConnectionStrings["SunshineDbConnection"].ConnectionString;
+
+            using (var cn = new SqlConnection(cs))
+            {
+                string _sql = @"SELECT [Username] FROM [dbo].[System_Users] " + @"WHERE [Username] = @u";
+                var cmd = new SqlCommand(_sql, cn);
+                cmd.Parameters.Add(new SqlParameter("@u", SqlDbType.NVarChar)).Value = _username;
+                cn.Open();
+                var reader = cmd.ExecuteReader();
+                if (reader.HasRows)
+                {
+                    reader.Dispose();
+                    cmd.Dispose();
+                    return true;
+                }
+                else
+                {
+                    reader.Dispose();
+                    cmd.Dispose();
+                    return false;
+                }
+            }
+        }        
     }
 }

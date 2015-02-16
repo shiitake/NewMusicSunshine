@@ -4,6 +4,9 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Security;
+using System.Configuration;
+using System.Data;
+using System.Data.SqlClient;
 
 namespace NewMusicSunshine.Website.Controllers
 {
@@ -45,5 +48,47 @@ namespace NewMusicSunshine.Website.Controllers
             return RedirectToAction("Index", "Home");
         }
 
+        public ActionResult Register(Models.User user)
+        {
+            if (ModelState.IsValid)
+            {
+                //check for duplicate user
+                if (user.IsDuplicate(user.UserName))
+                {
+                    ModelState.AddModelError("", "Username aleady exists.");
+                }
+                else
+                {
+                    var result = CreateUser(user);
+                    if (result < 1)
+                    {
+                        ModelState.AddModelError("", "There was a problem creating your username.");
+                    }
+                    else
+                    {
+                        FormsAuthentication.SetAuthCookie(user.UserName, user.RememberMe);
+                        return RedirectToAction("Index", "Home");
+                    }
+                }
+            }
+            return View(user);
+        }
+
+        private int CreateUser(Models.User user)
+        {
+            var cs = ConfigurationManager.ConnectionStrings["SunshineDbConnection"].ConnectionString;
+
+            using (var cn = new SqlConnection(cs))
+            {
+                string _sql = @"INSERT INTO [dbo].[System_Users] ([Username], [Password], [Email]) VALUES (@u, @p, @e)";
+                var cmd = new SqlCommand(_sql, cn);
+                cmd.Parameters.Add(new SqlParameter("@u", SqlDbType.NVarChar)).Value = user.UserName;
+                cmd.Parameters.Add(new SqlParameter("@p", SqlDbType.NVarChar)).Value = Helpers.SHA1.Encode(user.Password);
+                cmd.Parameters.Add(new SqlParameter("@e", SqlDbType.NVarChar)).Value = user.EmailAddress;
+                cn.Open();
+                var result = cmd.ExecuteNonQuery();
+                return result;
+            }
+        }
     }
 }
