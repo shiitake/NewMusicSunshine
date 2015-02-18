@@ -14,11 +14,11 @@ namespace NewMusicSunshine.Website.Controllers
     {
         //
         // GET: /User/
-
         public ActionResult Index()
         {
             return View();
         }
+        
         [HttpGet]
         public ActionResult Login()
         {
@@ -42,17 +42,23 @@ namespace NewMusicSunshine.Website.Controllers
             }
             return View(user);
         }
+        
         public ActionResult Logout()
         {
             FormsAuthentication.SignOut();
             return RedirectToAction("Index", "Home");
         }
 
-        public ActionResult Register(Models.User user)
+        [HttpGet]
+        public ActionResult Register()
+        {
+            return View();
+        }
+
+        public ActionResult Register(Models.NewUser user)
         {
             if (ModelState.IsValid)
             {
-                //check for duplicate user
                 if (user.IsDuplicate(user.UserName))
                 {
                     ModelState.AddModelError("", "Username aleady exists.");

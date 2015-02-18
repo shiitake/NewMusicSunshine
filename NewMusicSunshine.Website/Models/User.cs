@@ -20,7 +20,7 @@ namespace NewMusicSunshine.Website.Models
         [Display(Name = "Password")]
         public string Password { get; set; }
 
-        [Required]
+        //[Required]
         [Display(Name = "Email Address")]
         public string EmailAddress { get; set; }
         
@@ -90,5 +90,17 @@ namespace NewMusicSunshine.Website.Models
                 }
             }
         }        
+    }
+
+    public class NewUser : User
+    {
+        [Required]
+        [Display(Name = "Email Address")]
+        public string EmailAddress { get; set; }
+
+        [DataType(DataType.Password)]
+        [Display(Name = "Confirm password")]
+        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+        public string ConfirmPassword { get; set; }
     }
 }
