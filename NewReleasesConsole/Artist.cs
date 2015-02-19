@@ -34,5 +34,6 @@ namespace NewReleasesConsole
         public DateTime ReleaseDate { get; set; }
         public string Label { get; set; }
         public string Genre { get; set; }
+        public string ASIN { get; set; }
     }
 }

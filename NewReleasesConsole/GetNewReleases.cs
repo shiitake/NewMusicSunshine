@@ -10,6 +10,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Net;
+using System.Xml;
+using System.Xml.Linq;
 using DiscogsNet;
 using DiscogsNet.Api;
 using DiscogsNet.Model.Search;
@@ -29,10 +31,10 @@ namespace NewReleasesConsole
         public static string AccessTokenURL = @"http://api.discogs.com/oauth/access_token";
         public static string UserAgent = @"NewMusicSunshine/0.1 +https://github.com/shiitake/NewMusicSunshine";
 
-        public List<Artist> ArtistSearch(string artist)
+        public List<Artist> DiscogArtistSearch(string artist)
         {
             var authorization = @"Discogs key=" + ConsumerKey + ",secret=" + ConsumerSecret;
-            var url = BuildSearchUrl(artist);
+            var url = BuildDiscogSearchUrl(artist);
 
             HttpWebRequest req = (HttpWebRequest)WebRequest.Create(url);
             req.Method = "GET";
@@ -60,9 +62,70 @@ namespace NewReleasesConsole
             }
         }
 
-        public string BuildSearchUrl(string artist)
+        private string BuildDiscogSearchUrl(string artist)
         {
             return String.Format("https://api.discogs.com/database/search?q={0}&type=artist", artist);
+        }
+
+        private string BuildMBSearchUrl(string arid)
+        {
+            DateTime date = DateTime.Today;
+            var startDate = date.ToString("yyyy-MM-dd");
+            var endDate = date.AddMonths(1).ToString("yyyy-MM-dd");
+            var dateRange = "date:[" + startDate + " TO " + endDate + "]";
+            return String.Format("arid:{0} AND {1}", arid, dateRange);
+        }
+        
+        public List<Release> GetNewReleasesFromMusicBrainz(string arid = "")
+        {
+            arid = "ad0ecd8b-805e-406e-82cb-5b00c3a3a29e";
+            List<Release> releaseList = new List<Release>();
+            XDocument docResponse = null;
+            var url = BuildMBSearchUrl(arid);
+            var baseuri = "http://musicbrainz.org/ws/2/release/";
+
+            HttpWebRequest req = (HttpWebRequest)WebRequest.Create(baseuri + "?query=" + WebUtility.UrlEncode(url));
+            req.Method = "GET";
+            req.UserAgent = UserAgent;
+            //req.ContentType = "application/x-www-form-urlencoded";
+
+            using (HttpWebResponse resp = (HttpWebResponse)req.GetResponse())
+            {
+                using (XmlReader reader = XmlReader.Create(resp.GetResponseStream()))
+                {
+                    docResponse = XDocument.Load(reader);
+                }
+            }
+            
+            if (docResponse != null)
+            {
+                //checked release count
+                XNamespace aw = docResponse.Root.Name.NamespaceName;
+                var count = int.Parse(docResponse.Element(aw + "metadata").Element(aw +"release-list").Attribute("count").Value);
+                if (count > 0)
+                {
+                    IEnumerable<XElement> releases = null;
+                    releases = (
+                        from release in
+                            docResponse.Element(aw + "metadata").Element(aw + "release-list").Elements(aw + "release")
+                        select release
+                        );
+                    foreach (XElement release in releases)
+                    {
+                        var rel = new Release();
+                        rel.Name = release.Element(aw + "title").Value;
+                        rel.ReleaseDate = Convert.ToDateTime(release.Element(aw + "date").Value);
+                        rel.Label =
+                            release.Element(aw + "label-info-list")
+                                .Element(aw + "label-info")
+                                .Element(aw + "label")
+                                .Element(aw + "name").Value;
+                        rel.ASIN = release.Element(aw + "asin").Value;
+                        releaseList.Add(rel);
+                    }
+                }
+            }
+            return releaseList;
         }
     }
 }

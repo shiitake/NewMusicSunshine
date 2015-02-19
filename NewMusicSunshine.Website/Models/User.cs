@@ -6,6 +6,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Web;
 using System.Configuration;
+using NewMusicSunshine.Core;
 
 namespace NewMusicSunshine.Website.Models
 {
@@ -47,7 +48,7 @@ namespace NewMusicSunshine.Website.Models
                     .Value = _username;
                 cmd.Parameters
                     .Add(new SqlParameter("@p", SqlDbType.NVarChar))
-                    .Value = Helpers.SHA1.Encode(_password);
+                    .Value = SHA1.Encode(_password);
                 cn.Open();
                 var reader = cmd.ExecuteReader();
                 if (reader.HasRows)

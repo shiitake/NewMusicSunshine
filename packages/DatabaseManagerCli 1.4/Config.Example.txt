@@ -1,8 +1,0 @@
-Host = localhost
-User = root
-Pass = password
-Db = discogs
-LabelsXmlPath = D:\discogs_20120702_labels.xml
-ArtistsXmlPath = D:\discogs_20120702_artists.xml
-ReleasesXmlPath = D:\discogs_20120702_releases.xml
-MasterReleasesXmlPath = D:\discogs_20120702_masters.xml

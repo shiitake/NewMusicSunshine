@@ -7,6 +7,7 @@ using System.Web.Security;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
+using NewMusicSunshine.Core;
 
 namespace NewMusicSunshine.Website.Controllers
 {
@@ -89,7 +90,7 @@ namespace NewMusicSunshine.Website.Controllers
                 string _sql = @"INSERT INTO [dbo].[System_Users] ([Username], [Password], [Email]) VALUES (@u, @p, @e)";
                 var cmd = new SqlCommand(_sql, cn);
                 cmd.Parameters.Add(new SqlParameter("@u", SqlDbType.NVarChar)).Value = user.UserName;
-                cmd.Parameters.Add(new SqlParameter("@p", SqlDbType.NVarChar)).Value = Helpers.SHA1.Encode(user.Password);
+                cmd.Parameters.Add(new SqlParameter("@p", SqlDbType.NVarChar)).Value = SHA1.Encode(user.Password);
                 cmd.Parameters.Add(new SqlParameter("@e", SqlDbType.NVarChar)).Value = user.EmailAddress;
                 cn.Open();
                 var result = cmd.ExecuteNonQuery();
