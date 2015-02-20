@@ -8,19 +8,20 @@ namespace NewReleasesConsole
 {
     public class Artist
     {
-        public string Name
-        {
-            get { return this.Title; }
-        }
+        public string Name {get; set;}        
         public List<Release> Releases { get; set; }
         public Release MostRecentRelease
         {
             get { return GetRecentRelease(Releases); } 
         }
         public string Title { get; set; }
-        public int Id { get; set; }
+        public string Country { get; set; }
+        public string Id { get; set; }
         public string Thumb { get; set; }
         public string Uri { get; set; }
+        public int Count { get; set; }
+        public string Begin { get; set; }
+        public string Ended { get; set; }
 
         public Release GetRecentRelease(List<Release> releases )
         {
