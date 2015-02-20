@@ -114,7 +114,7 @@ namespace NewReleasesConsole
                         art.Name = artist.Element(aw + "name").Value;
                         art.Id = artist.Attribute("id").Value;
                         //art.Country = artist.Element(aw + "area")
-                        //        .Element(aw + "name").Value;
+                        //        .Element(aw + "name").Value ?? "";
                         artistList.Add(art);
                     }
                 }
@@ -166,7 +166,7 @@ namespace NewReleasesConsole
                                 .Element(aw + "label-info")
                                 .Element(aw + "label")
                                 .Element(aw + "name").Value;
-                        //rel.ASIN = release.Element(aw + "asin").Value;
+                        rel.ASIN = release.Element(aw + "asin").Value ?? "";
                         releaseList.Add(rel);
                     }
                 }
