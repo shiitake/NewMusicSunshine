@@ -83,7 +83,6 @@ namespace NewReleasesConsole
             return String.Format("arid:{0} AND {1} AND {2}", arid, primaryType, asinExists);
         }
         
-        
         public List<Artist> GetArtistListFromMusicBrainz(string name)
         {
             List<Artist> artistList = new List<Artist>();
@@ -158,6 +157,27 @@ namespace NewReleasesConsole
                 var count = int.Parse(docResponse.Element(aw + "metadata").Element(aw +"release-list").Attribute("count").Value);
                 if (count > 0)
                 {
+<<<<<<< Updated upstream
+                    IEnumerable<XElement> releases = null;
+                    releases = (
+                        from release in
+                            docResponse.Element(aw + "metadata").Element(aw + "release-list").Elements(aw + "release")
+                        select release
+                        );
+                    foreach (XElement release in releases)
+                    {
+                        var rel = new Release();
+                        rel.Name = release.Element(aw + "title").Value;
+                        rel.ReleaseDate = Convert.ToDateTime(release.Element(aw + "date").Value);
+                        rel.Label =
+                            release.Element(aw + "label-info-list")
+                                .Element(aw + "label-info")
+                                .Element(aw + "label")
+                                .Element(aw + "name").Value;
+                        rel.ASIN = release.Element(aw + "asin").Value ?? "";
+                        releaseList.Add(rel);
+                    }
+=======
                     releaseList = ProcessReleaseData(docResponse);
                 }
             }
@@ -220,8 +240,9 @@ namespace NewReleasesConsole
                             .Element(aw + "label-info")
                             .Element(aw + "label")
                             .Element(aw + "name").Value;
-                        rel.ASIN = release.Element(aw + "asin").Value ?? "";
+                    rel.ASIN = release.Element(aw + "asin").Value;
                     releaseList.Add(rel);
+>>>>>>> Stashed changes
                 }
             }
             return releaseList;
