@@ -78,7 +78,7 @@ namespace NewReleasesConsole
 
         private string BuildMBReleaseUrl(string arid)
         {
-            var asinExists = "asin:%28%5B0%20TO%209%5D%20%5Ba%20TO%20z%5D%29";
+            var asinExists = "asin:([0 TO 9] [a TO z])";
             var primaryType = "primarytype:album";
             return String.Format("arid:{0} AND {1} AND {2}", arid, primaryType, asinExists);
         }
@@ -164,7 +164,7 @@ namespace NewReleasesConsole
             return releaseList;
         }
 
-        public List<Release> GetAsinDateFromMusicBrainz(string arid)
+        public List<Release> GetAsinDataFromMusicBrainz(string arid)
         {
             List<Release> releaseList = new List<Release>();
             XDocument docResponse = null;

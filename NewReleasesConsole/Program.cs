@@ -34,6 +34,10 @@ namespace NewReleasesConsole
                     result.Count = count;
                     Console.WriteLine(result.Count + "\t" + result.Name +"\t"+ result.Id);
                     count++;
+                    if (count == 10)
+                    {
+                        break;
+                    }
                 }
                 Console.Write("Please choose the correct artist: ");
                 int choice;
@@ -41,22 +45,23 @@ namespace NewReleasesConsole
                 if (valid && choice > 0 && choice <= count)
                 {
                     var artist = results.Where(x => choice.Equals(x.Count)).FirstOrDefault();
-                    var releaseList = newReleases.GetNewReleasesFromMusicBrainz(artist.Id);
+                    var releaseList = newReleases.GetAsinDataFromMusicBrainz(artist.Id);
                     if (releaseList.Count > 0)
                     {
                         Console.WriteLine("Possible Releases:");
                         foreach (Release release in releaseList)
                         {
-                            Console.WriteLine(release.Name);
-                            Console.WriteLine(release.Label);
-                            Console.WriteLine(release.ReleaseDate);
-                            Console.WriteLine(release.ASIN);
+                            Console.WriteLine("================");
+                            Console.WriteLine("Title: " + release.Name);
+                            Console.WriteLine("Label: " + release.Label);
+                            Console.WriteLine("Release Date: "+ release.ReleaseDate);
+                            Console.WriteLine("ASIN: " + release.ASIN);
                             Console.WriteLine();
                         }
                     }
                     else
                     {
-                        Console.WriteLine("No upcoming releases for " + artist.Name);
+                        Console.WriteLine("No releases found for " + artist.Name);
                     }
                 }
                 else
