@@ -18,6 +18,7 @@ using DiscogsNet.Model.Search;
 using DiscogsNet.User;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NewMusicSunshine.Core;
 
 
 namespace NewReleasesConsole
@@ -201,7 +202,7 @@ namespace NewReleasesConsole
         {
             List<Release> releaseList = new List<Release>();
             XNamespace aw = data.Root.Name.NamespaceName;
-            var count = int.Parse(data.Element(aw + "metadata").Element(aw + "release-list").Attribute("count").Value);
+            var count = int.Parse(data.ElementOrEmpty(aw + "metadata").Element(aw + "release-list").Attribute("count").Value);
             if (count > 0)
             {
                 IEnumerable<XElement> releases = null;
@@ -213,14 +214,12 @@ namespace NewReleasesConsole
                 foreach (XElement release in releases)
                 {
                     var rel = new Release();
-                    rel.Name = release.Element(aw + "title").Value;
-                    rel.ReleaseDate = Convert.ToDateTime(release.Element(aw + "date").Value);
-                    rel.Label =
-                        release.Element(aw + "label-info-list")
-                            .Element(aw + "label-info")
-                            .Element(aw + "label")
-                            .Element(aw + "name").Value;
-                        rel.ASIN = release.Element(aw + "asin").Value ?? "";
+                    rel.Name = release.ElementOrEmpty(aw + "title").Value;
+                    rel.ReleaseDate = Convert.ToDateTime(release.ElementOrEmpty(aw + "date").Value);
+                    rel.Label = release.ElementOrEmpty(aw + "label-info-list").ElementOrEmpty(aw + "label-info")
+                            .ElementOrEmpty(aw + "label")
+                            .ElementOrEmpty(aw + "name").Value;
+                    rel.ASIN = release.ElementOrEmpty(aw + "asin").Value ?? "";
                     releaseList.Add(rel);
                 }
             }
