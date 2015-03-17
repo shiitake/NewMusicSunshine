@@ -1,13 +1,8 @@
-﻿using System;
-using System.Xml.Linq;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Xml.Linq;
 
 namespace NewMusicSunshine.Core
 {
-    class XDocumentExtensions
+    public static class XDocumentExtensions
     {
         public static string ValueOrEmpty(this XElement xelement)
         {
@@ -19,9 +14,21 @@ namespace NewMusicSunshine.Core
             return xDocument.Element(name) ?? new XElement(name);
         }
 
+        public static XElement ElementOrEmpty(this XDocument xDocument, XNamespace xname, string name)
+        {
+            string elementString = "{" + xname + "}" + name;
+            return ElementOrEmpty(xDocument, elementString);
+        }
+
         public static XElement ElementOrEmpty(this XElement xelement, string name)
         {
             return xelement.Element(name) ?? new XElement(name);
+        }
+
+        public static XElement ElementOrEmpty(this XElement xelement, XNamespace xname, string name)
+        {
+            string elementString = "{" + xname + "}" + name;
+            return ElementOrEmpty(xelement, elementString);
         }
 
         public static XContainer ContainerOrEmpty(this XContainer xelement, string name)

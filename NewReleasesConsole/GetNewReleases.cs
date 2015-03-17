@@ -202,24 +202,27 @@ namespace NewReleasesConsole
         {
             List<Release> releaseList = new List<Release>();
             XNamespace aw = data.Root.Name.NamespaceName;
-            var count = int.Parse(data.ElementOrEmpty(aw + "metadata").Element(aw + "release-list").Attribute("count").Value);
+            var count = int.Parse(data.ElementOrEmpty(aw, "metadata")
+                .ElementOrEmpty(aw, "release-list")
+                .Attribute("count").Value);
             if (count > 0)
             {
                 IEnumerable<XElement> releases = null;
                 releases = (
                     from release in
-                        data.Element(aw + "metadata").Element(aw + "release-list").Elements(aw + "release")
+                        data.ElementOrEmpty(aw, "metadata")
+                        .ElementOrEmpty(aw, "release-list").Elements(aw + "release")
                     select release
                     );
                 foreach (XElement release in releases)
                 {
                     var rel = new Release();
-                    rel.Name = release.ElementOrEmpty(aw + "title").Value;
-                    rel.ReleaseDate = Convert.ToDateTime(release.ElementOrEmpty(aw + "date").Value);
-                    rel.Label = release.ElementOrEmpty(aw + "label-info-list").ElementOrEmpty(aw + "label-info")
-                            .ElementOrEmpty(aw + "label")
-                            .ElementOrEmpty(aw + "name").Value;
-                    rel.ASIN = release.ElementOrEmpty(aw + "asin").Value ?? "";
+                    rel.Name = release.ElementOrEmpty(aw, "title").Value;
+                    rel.StringDate = release.ElementOrEmpty(aw, "date").Value;
+                    rel.Label = release.ElementOrEmpty(aw, "label-info-list").ElementOrEmpty(aw, "label-info")
+                            .ElementOrEmpty(aw, "label")
+                            .ElementOrEmpty(aw, "name").Value;
+                    rel.ASIN = release.ElementOrEmpty(aw, "asin").Value ?? "";
                     releaseList.Add(rel);
                 }
             }
