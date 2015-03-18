@@ -55,6 +55,7 @@
     <Compile Include="Configuration\IAppSettings.cs" />
     <Compile Include="Jobs\GetNewReleasesJob.cs" />
     <Compile Include="Jobs\NinjectJobFactory.cs" />
+    <Compile Include="Models\AmazonHeader.cs" />
     <Compile Include="Models\NewRelease.cs" />
     <Compile Include="Program.cs" />
   </ItemGroup>
@@ -91,6 +92,9 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.XML" />
     <Reference Include="Topshelf">
       <HintPath>..\packages\Topshelf.3.1.4\lib\net40-full\Topshelf.dll</HintPath>

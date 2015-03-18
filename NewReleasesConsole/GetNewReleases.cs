@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.Net;
 using System.Xml;
 using System.Xml.Linq;
+using Async;
 using DiscogsNet;
 using DiscogsNet.Api;
 using DiscogsNet.Model.Search;
@@ -19,6 +20,11 @@ using DiscogsNet.User;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NewMusicSunshine.Core;
+using NewReleases.Service;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Security.Cryptography;
+
 
 
 namespace NewReleasesConsole
@@ -134,8 +140,7 @@ namespace NewReleasesConsole
             HttpWebRequest req = (HttpWebRequest)WebRequest.Create(baseuri + "?query=" + WebUtility.UrlEncode(url));
             req.Method = "GET";
             req.UserAgent = UserAgent;
-            //req.ContentType = "application/x-www-form-urlencoded";
-
+            
             using (HttpWebResponse resp = (HttpWebResponse)req.GetResponse())
             {
                 using (XmlReader reader = XmlReader.Create(resp.GetResponseStream()))
@@ -160,6 +165,7 @@ namespace NewReleasesConsole
         public List<Release> ProcessReleaseData(XDocument data)
         {
             List<Release> releaseList = new List<Release>();
+            string asinList = "";
             XNamespace aw = data.Root.Name.NamespaceName;
             var count = int.Parse(data.ElementOrEmpty(aw, "metadata")
                 .ElementOrEmpty(aw, "release-list")
@@ -182,10 +188,88 @@ namespace NewReleasesConsole
                             .ElementOrEmpty(aw, "label")
                             .ElementOrEmpty(aw, "name").Value;
                     rel.ASIN = release.ElementOrEmpty(aw, "asin").Value ?? "";
+                    asinList += (rel.ASIN.Length > 0) ? rel.ASIN + "%2C" : "";
                     releaseList.Add(rel);
                 }
             }
+            var artistAsin = GetAmazonArtistID(asinList);
             return releaseList;
+        }
+
+        public string GetAmazonArtistID(string asinList)
+        {
+            string accessKeyId = "";
+            string secretKey = "";
+            string associateTag = "newmussun-20";
+
+            string operation = "ItemLookup";
+            DateTime now = DateTime.UtcNow;
+            string timestamp = now.ToString("yyyy-MM-ddTHH:mm:ssZ");
+            string signMe = operation + timestamp;
+            byte[] bytesToSign = Encoding.UTF8.GetBytes(signMe);
+
+            // sign the data
+            var signature = GetRequestSignature(secretKey, bytesToSign);
+
+            XDocument docResponse = null;
+            Uri baseuri = new Uri("http://ecs.amazonaws.com/onca/xml");
+            var urlparams = String.Format("?AWSAccessKeyId={0}&AssociateTag={1}&Operation={2}&ItemId={3}&RelationshipType=DigitalMusicPrimaryArtist&ResponseGroup=RelatedItems&Service=AWSECommerceService&Timestamp={4}&Version=2100-01-01&Signature={5}",
+                            accessKeyId, associateTag, operation, asinList, WebUtility.UrlEncode(timestamp), WebUtility.UrlEncode(signature));
+            Uri param = new Uri(urlparams, UriKind.Relative);
+            Uri combinedUri = new Uri(baseuri, param);
+            HttpWebRequest req = (HttpWebRequest)WebRequest.Create(HackedUri.Create(combinedUri.AbsoluteUri));
+            req.Method = "GET";
+            req.UserAgent = UserAgent;
+            
+            using (HttpWebResponse resp = (HttpWebResponse)req.GetResponse())
+            {
+                using (XmlReader reader = XmlReader.Create(resp.GetResponseStream()))
+                {
+                    docResponse = XDocument.Load(reader);
+                }
+            }
+            var artistAsin = "";
+
+            if (docResponse != null)
+            {
+                artistAsin = ProcessAmazonReleases(docResponse);
+            }
+            return artistAsin;
+        }
+
+        public string GetRequestSignature(string key, byte[] unsigned)
+        {
+            byte[] secretKeyBytes = Encoding.UTF8.GetBytes(key);
+            HMAC hmacSha256 = new HMACSHA256(secretKeyBytes);
+            byte[] hashBytes = hmacSha256.ComputeHash(unsigned);
+            return Convert.ToBase64String(hashBytes);
+        }
+
+        public string ProcessAmazonReleases(XDocument data)
+        {
+            XNamespace aw = data.Root.Name.NamespaceName;
+            var artistasin = "";
+            IEnumerable<XElement> items = null;
+            items = (
+                from item in
+                    data.ElementOrEmpty(aw, "ItemLookupResponse")
+                        .ElementOrEmpty(aw, "Items")
+                        .Elements(aw + "Item")
+                select item);
+
+            foreach (XElement item in items)
+            {
+                artistasin =
+                    item.ElementOrEmpty(aw, "RelatedItems")
+                        .ElementOrEmpty(aw, "RelatedItem")
+                        .ElementOrEmpty(aw, "Item")
+                        .ElementOrEmpty(aw, "ASIN").Value;
+                if (artistasin != null)
+                {
+                    return artistasin;
+                }
+            }
+            return artistasin;
         }
     }
 }

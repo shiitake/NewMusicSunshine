@@ -47,6 +47,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Net" />
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -68,6 +69,10 @@
     <ProjectReference Include="..\NewMusicSunshine.Core\NewMusicSunshine.Core.csproj">
       <Project>{c5ff70ac-b51d-47b1-a128-d6ae202366a8}</Project>
       <Name>NewMusicSunshine.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NewReleases\NewReleases.Service.csproj">
+      <Project>{3c181d7d-f05a-451a-85aa-e5155c04ee12}</Project>
+      <Name>NewReleases.Service</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
