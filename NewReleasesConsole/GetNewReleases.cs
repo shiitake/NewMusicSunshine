@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Net;
+using System.Net.Http;
 using System.Xml;
 using System.Xml.Linq;
 using Async;
@@ -192,11 +193,14 @@ namespace NewReleasesConsole
                     releaseList.Add(rel);
                 }
             }
-            var artistAsin = GetAmazonArtistID(asinList);
-            return releaseList;
+            GetAmazonArtistID(asinList);
+
+           return releaseList;
         }
 
-        public string GetAmazonArtistID(string asinList)
+       
+
+        public async void GetAmazonArtistID(string asinList)
         {
             string accessKeyId = "";
             string secretKey = "";
@@ -204,7 +208,7 @@ namespace NewReleasesConsole
 
             string operation = "ItemLookup";
             DateTime now = DateTime.UtcNow;
-            string timestamp = now.ToString("yyyy-MM-ddTHH:mm:ssZ");
+            string timestamp = now.ToString("yyyy-MM-ddTHH:mm:ss.000Z");
             string signMe = operation + timestamp;
             byte[] bytesToSign = Encoding.UTF8.GetBytes(signMe);
 
@@ -213,20 +217,17 @@ namespace NewReleasesConsole
 
             XDocument docResponse = null;
             Uri baseuri = new Uri("http://ecs.amazonaws.com/onca/xml");
-            var urlparams = String.Format("?AWSAccessKeyId={0}&AssociateTag={1}&Operation={2}&ItemId={3}&RelationshipType=DigitalMusicPrimaryArtist&ResponseGroup=RelatedItems&Service=AWSECommerceService&Timestamp={4}&Version=2100-01-01&Signature={5}",
+            var urlparams = String.Format("?AWSAccessKeyId={0}&AssociateTag={1}&ItemId={3}&Operation={2}&RelationshipType=DigitalMusicPrimaryArtist&ResponseGroup=RelatedItems&Service=AWSECommerceService&Timestamp={4}&Version=2100-01-01&Signature={5}",
                             accessKeyId, associateTag, operation, asinList, WebUtility.UrlEncode(timestamp), WebUtility.UrlEncode(signature));
             Uri param = new Uri(urlparams, UriKind.Relative);
             Uri combinedUri = new Uri(baseuri, param);
-            HttpWebRequest req = (HttpWebRequest)WebRequest.Create(HackedUri.Create(combinedUri.AbsoluteUri));
-            req.Method = "GET";
-            req.UserAgent = UserAgent;
-            
-            using (HttpWebResponse resp = (HttpWebResponse)req.GetResponse())
+          
+            Task<string> amazonCall = GetAmazonResponse(combinedUri.AbsoluteUri);
+            string responseRaw = await amazonCall;
+
+            if (responseRaw != null)
             {
-                using (XmlReader reader = XmlReader.Create(resp.GetResponseStream()))
-                {
-                    docResponse = XDocument.Load(reader);
-                }
+                docResponse = XDocument.Load(responseRaw);
             }
             var artistAsin = "";
 
@@ -234,7 +235,8 @@ namespace NewReleasesConsole
             {
                 artistAsin = ProcessAmazonReleases(docResponse);
             }
-            return artistAsin;
+            Console.WriteLine("Artist Amazon Id: " + artistAsin);
+            //return artistAsin;
         }
 
         public string GetRequestSignature(string key, byte[] unsigned)
@@ -271,5 +273,22 @@ namespace NewReleasesConsole
             }
             return artistasin;
         }
+
+        public async Task<string> GetAmazonResponse(string uri)
+        {
+        //XDocument docResponse = null;
+        using (HttpClient client = new HttpClient())
+        using (HttpResponseMessage response = await client.GetAsync(uri))
+        using (HttpContent content = response.Content)
+        {
+            string result = await content.ReadAsStringAsync();
+            //if (result != null)
+            //{
+            //    docResponse = XDocument.Load(result);
+            //}
+            return result;
+        }
+        }
+    
     }
 }
