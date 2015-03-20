@@ -32,6 +32,9 @@ namespace NewReleasesConsole
 {
     public class GetNewReleases
     {
+        string accessKeyId = "";
+        string secretKey = "";
+        string associateTag = "newmussun-20";
         public static string UserAgent = @"NewMusicSunshine/0.1 +https://github.com/shiitake/NewMusicSunshine";
 
         private string BuildMBSearchUrl(string arid)
@@ -180,6 +183,7 @@ namespace NewReleasesConsole
                         .ElementOrEmpty(aw, "release-list").Elements(aw + "release")
                     select release
                     );
+                int asincount = 0;
                 foreach (XElement release in releases)
                 {
                     var rel = new Release();
@@ -189,7 +193,11 @@ namespace NewReleasesConsole
                             .ElementOrEmpty(aw, "label")
                             .ElementOrEmpty(aw, "name").Value;
                     rel.ASIN = release.ElementOrEmpty(aw, "asin").Value ?? "";
-                    asinList += (rel.ASIN.Length > 0) ? rel.ASIN + "%2C" : "";
+                    if (rel.ASIN.Length > 0 && asincount <= 10)
+                    {
+                        asinList += rel.ASIN + "%2C";
+                        asincount++;
+                    }
                     releaseList.Add(rel);
                 }
             }
@@ -198,27 +206,22 @@ namespace NewReleasesConsole
            return releaseList;
         }
 
-       
-
         public async void GetAmazonArtistID(string asinList)
         {
-            string accessKeyId = "";
-            string secretKey = "";
-            string associateTag = "newmussun-20";
-
-            string operation = "ItemLookup";
             DateTime now = DateTime.UtcNow;
             string timestamp = now.ToString("yyyy-MM-ddTHH:mm:ss.000Z");
-            string signMe = operation + timestamp;
-            byte[] bytesToSign = Encoding.UTF8.GetBytes(signMe);
-
+            
+            // build query
+            var queryString = BuildQueryString(asinList, WebUtility.UrlEncode(timestamp));
+            var canonicalRequest = BuildCanonicalRequest(queryString);
+           
             // sign the data
-            var signature = GetRequestSignature(secretKey, bytesToSign);
+            var signature = GetRequestSignature(canonicalRequest, secretKey);
 
             XDocument docResponse = null;
-            Uri baseuri = new Uri("http://ecs.amazonaws.com/onca/xml");
-            var urlparams = String.Format("?AWSAccessKeyId={0}&AssociateTag={1}&ItemId={3}&Operation={2}&RelationshipType=DigitalMusicPrimaryArtist&ResponseGroup=RelatedItems&Service=AWSECommerceService&Timestamp={4}&Version=2100-01-01&Signature={5}",
-                            accessKeyId, associateTag, operation, asinList, WebUtility.UrlEncode(timestamp), WebUtility.UrlEncode(signature));
+            Uri baseuri = new Uri("http://webservices.amazon.com/onca/xml");
+            
+            var urlparams = String.Format("?{0}&Signature={1}",queryString, WebUtility.UrlEncode(signature));
             Uri param = new Uri(urlparams, UriKind.Relative);
             Uri combinedUri = new Uri(baseuri, param);
           
@@ -227,7 +230,10 @@ namespace NewReleasesConsole
 
             if (responseRaw != null)
             {
-                docResponse = XDocument.Load(responseRaw);
+                using (XmlReader reader = XmlReader.Create(new StringReader(responseRaw)))
+                {
+                    docResponse = XDocument.Load(reader);
+                }
             }
             var artistAsin = "";
 
@@ -239,11 +245,54 @@ namespace NewReleasesConsole
             //return artistAsin;
         }
 
-        public string GetRequestSignature(string key, byte[] unsigned)
+        public string BuildQueryString(string asinList, string timestamp)
         {
-            byte[] secretKeyBytes = Encoding.UTF8.GetBytes(key);
+            List<string> paramList = new List<string>();
+            paramList.Add("Operation=ItemLookup");
+            paramList.Add("ResponseGroup=RelatedItems");
+            paramList.Add("Service=AWSECommerceService");
+            paramList.Add("Version=2100-01-01");
+            paramList.Add("RelationshipType=DigitalMusicPrimaryArtist");
+            paramList.Add("AWSAccessKeyId=" + accessKeyId);
+            paramList.Add("AssociateTag=" + associateTag);
+            paramList.Add("ItemId=" + asinList);
+            paramList.Add("Timestamp=" + timestamp);
+            var sortedList = SortParametersList(paramList);
+            StringBuilder queryStringBuilder = new StringBuilder();
+            foreach (string s in sortedList)
+            {
+                queryStringBuilder.Append(s + "&");   
+            }
+            queryStringBuilder.Remove(queryStringBuilder.Length - 1,1);
+            return queryStringBuilder.ToString();
+        }
+
+        public List<string> SortParametersList(List<string> paramList)
+        {
+            ByteOrderComparer comparer = new ByteOrderComparer();
+            paramList.Sort(comparer);
+            return paramList;
+        }
+
+        public string BuildCanonicalRequest(string querystring)
+        {
+            var canonicalRequest = new StringBuilder();
+
+            canonicalRequest.AppendFormat("GET\n");
+            canonicalRequest.AppendFormat("webservices.amazon.com\n");
+            canonicalRequest.AppendFormat("/onca/xml\n");
+            canonicalRequest.Append(querystring);
+
+            return canonicalRequest.ToString(); 
+        }
+
+        public string GetRequestSignature(string canonicalrequest, string secret)
+        {
+            
+            byte[] secretKeyBytes = Encoding.UTF8.GetBytes(secret);
+            byte[] canonicalRequestBytes = Encoding.UTF8.GetBytes(canonicalrequest);
             HMAC hmacSha256 = new HMACSHA256(secretKeyBytes);
-            byte[] hashBytes = hmacSha256.ComputeHash(unsigned);
+            byte[] hashBytes = hmacSha256.ComputeHash(canonicalRequestBytes);
             return Convert.ToBase64String(hashBytes);
         }
 
@@ -266,7 +315,7 @@ namespace NewReleasesConsole
                         .ElementOrEmpty(aw, "RelatedItem")
                         .ElementOrEmpty(aw, "Item")
                         .ElementOrEmpty(aw, "ASIN").Value;
-                if (artistasin != null)
+                if (artistasin.Length > 0)
                 {
                     return artistasin;
                 }
@@ -276,16 +325,11 @@ namespace NewReleasesConsole
 
         public async Task<string> GetAmazonResponse(string uri)
         {
-        //XDocument docResponse = null;
         using (HttpClient client = new HttpClient())
         using (HttpResponseMessage response = await client.GetAsync(uri))
         using (HttpContent content = response.Content)
         {
             string result = await content.ReadAsStringAsync();
-            //if (result != null)
-            //{
-            //    docResponse = XDocument.Load(result);
-            //}
             return result;
         }
         }

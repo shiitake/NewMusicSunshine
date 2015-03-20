@@ -39,6 +39,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ByteOrderComparer.cs" />
     <Compile Include="HackedUri.cs" />
     <Compile Include="SHA1.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
