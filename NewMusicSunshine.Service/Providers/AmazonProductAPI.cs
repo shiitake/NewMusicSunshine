@@ -7,12 +7,12 @@ using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using NewReleases.Service.Models;
+using NewMusicSunshine.Service.Models;
 using System.Xml;
 using System.Xml.Linq;
 using NewMusicSunshine.Core;
 
-namespace NewReleases.Service.Providers
+namespace NewMusicSunshine.Service.Providers
 {
     public class AmazonProductAPI
     {

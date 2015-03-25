@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NewReleases.Service.Models
+namespace NewMusicSunshine.Service.Models
 {
     public class Artist
     {
@@ -17,6 +17,10 @@ namespace NewReleases.Service.Models
         public string Title { get; set; }
         public string Country { get; set; }
         public string Id { get; set; }
+        public string AmgId { get; set; }
+        public string RoviId { get; set; }
+        public string Description { get; set; }
+        public string DiscographyUrl { get; set; }
         public string Thumb { get; set; }
         public string Uri { get; set; }
         public int Count { get; set; }

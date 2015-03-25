@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using NewReleases.Service.Models;
-using NewReleases.Service.Providers;
+using NewMusicSunshine.Service.Providers;
+using NewMusicSunshine.Service.Models;
 
-namespace NewReleases.Service
+namespace NewMusicSunshine.Service
 {
     public class GetNewReleases
     {

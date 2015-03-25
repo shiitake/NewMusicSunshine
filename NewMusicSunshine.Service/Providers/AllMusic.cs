@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
 
-namespace NewReleases.Service.Providers
+namespace NewMusicSunshine.Service.Providers
 {
     public class AllMusic
     {

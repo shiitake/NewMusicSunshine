@@ -7,7 +7,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
-using NewReleases.Service.Providers;
+using NewMusicSunshine.Service.Providers;
 
 namespace NewReleasesConsole
 {
@@ -16,8 +16,9 @@ namespace NewReleasesConsole
         static void Main(string[] args)
         {
             Console.WriteLine("Calculating MD5 hash:");
+            var artist = "the mountain goats";
             var rovi = new RoviCloud();
-            rovi.CalculateRoviSignature();
+            rovi.GetArtistListFromRovi(artist).Wait();
         }
     }
 }
