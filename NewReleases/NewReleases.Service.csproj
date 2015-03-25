@@ -53,11 +53,18 @@
     <Compile Include="AppModule.cs" />
     <Compile Include="Configuration\AppSettings.cs" />
     <Compile Include="Configuration\IAppSettings.cs" />
+    <Compile Include="GetNewReleases.cs" />
     <Compile Include="Jobs\GetNewReleasesJob.cs" />
     <Compile Include="Jobs\NinjectJobFactory.cs" />
     <Compile Include="Models\AmazonHeader.cs" />
+    <Compile Include="Models\Artist.cs" />
     <Compile Include="Models\NewRelease.cs" />
+    <Compile Include="Models\Release.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="Providers\AllMusic.cs" />
+    <Compile Include="Providers\AmazonProductAPI.cs" />
+    <Compile Include="Providers\MusicBrainz.cs" />
+    <Compile Include="Providers\RoviCloud.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Common.Logging, Version=2.3.1.0, Culture=neutral, PublicKeyToken=af08829b84f0328e, processorArchitecture=MSIL">
@@ -92,10 +99,12 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Security" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.XML" />
+    <Reference Include="System.Xml.Linq" />
     <Reference Include="Topshelf">
       <HintPath>..\packages\Topshelf.3.1.4\lib\net40-full\Topshelf.dll</HintPath>
     </Reference>
@@ -112,7 +121,12 @@
       <HintPath>..\packages\Topshelf.Quartz.Ninject.0.3.0.0\lib\net45\Topshelf.Quartz.Ninject.dll</HintPath>
     </Reference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\NewMusicSunshine.Core\NewMusicSunshine.Core.csproj">
+      <Project>{c5ff70ac-b51d-47b1-a128-d6ae202366a8}</Project>
+      <Name>NewMusicSunshine.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

@@ -56,9 +56,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AllMusicCrawler.cs" />
-    <Compile Include="Artist.cs" />
-    <Compile Include="GetNewReleases.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

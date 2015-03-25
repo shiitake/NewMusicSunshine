@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
 
-namespace NewReleasesConsole
+namespace NewReleases.Service.Providers
 {
-    public class AllMusicCrawler
+    public class AllMusic
     {
         public void Execute()
         {
@@ -15,9 +15,9 @@ namespace NewReleasesConsole
             var webGet = new HtmlWeb();
             var document = webGet.Load(url);
             var newReleases = from table in document.DocumentNode.SelectNodes("//tbody").Cast<HtmlNode>()
-                from row in table.SelectNodes("tr").Cast<HtmlNode>()
-                from cell in row.SelectNodes("th|td").Cast<HtmlNode>()
-                select new {Table = table.Id, CellText = cell.InnerText.Trim()};
+                              from row in table.SelectNodes("tr").Cast<HtmlNode>()
+                              from cell in row.SelectNodes("th|td").Cast<HtmlNode>()
+                              select new { Table = table.Id, CellText = cell.InnerText.Trim() };
             //where release.Name != "a" 
             //&& release.InnerText.Trim().Length > 0
             //&& release.Name != "span" 
