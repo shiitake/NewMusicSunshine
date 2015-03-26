@@ -15,10 +15,14 @@ namespace NewReleasesConsole
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Calculating MD5 hash:");
             var artist = "the mountain goats";
+            var id = "MN0000480830";
+            
             var rovi = new RoviCloud();
+            Console.WriteLine("Getting artist List: ");
             rovi.GetArtistListFromRovi(artist).Wait();
+            Console.WriteLine("Getting release List: ");
+            rovi.GetNewReleasesFromRovi(id).Wait();
         }
     }
 }

@@ -22,7 +22,7 @@ namespace NewMusicSunshine.Service.Providers
 
         public async Task GetArtistListFromRovi(string name)
         {
-            List<Artist> artistList = new List<Artist>();
+            //List<Artist> artistList = new List<Artist>();
             var baseuri = "http://api.rovicorp.com/search/v2.1/music/search?";
             var query = BuildRoviSearchUrl(name);
 
@@ -49,7 +49,7 @@ namespace NewMusicSunshine.Service.Providers
             sb.Append("apikey=" + apikey + "&");
             sb.Append("sig=" + signature + "&");
             sb.Append("query=" + artist + "&");
-            sb.Append("entitytype=" + artist + "&");
+            sb.Append("entitytype=artist&");
             sb.Append("size=10");
             return sb.ToString();
         }
@@ -71,11 +71,26 @@ namespace NewMusicSunshine.Service.Providers
             }
         }
         
-        
-        public List<Release> GetNewReleasesFromRovi(string id)
+        public async Task GetNewReleasesFromRovi(string id)
         {
-            //Todo: build this logic
-            return null;
+            //List<Artist> artistList = new List<Artist>();
+            var baseuri = "http://api.rovicorp.com/data/v1.1/name/discography?";
+            var query = BuildRoviDiscographyUrl(id);
+
+            using (var client = new HttpClient())
+            {
+                //client.BaseAddress = new Uri(baseuri + query);
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                HttpResponseMessage response = await client.GetAsync(baseuri + query);
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    JObject json = JObject.Parse(content);
+                    ProcessReleaseList(json);
+                }
+            }
         }
 
         private string BuildRoviDiscographyUrl(string id)
@@ -93,12 +108,24 @@ namespace NewMusicSunshine.Service.Providers
             return sb.ToString();
         }
 
-        public List<Release> ProcessReleaseData(string data)
+        public void ProcessReleaseList(JObject data)
         {
-            //todo: build this logic
-            return null;
+            List<Release> releaseList = new List<Release>();
+            var count = (int) data["view"]["total"];
+            //count = (count < 10) ? count : 10;
+            for (var i = 0; i < count; i++)
+            {
+                var release = new Release();
+                release.Name = (string) data["discography"][i]["title"];
+                release.RoviId = (string) data["discography"][i]["ids"]["albumId"];
+                release.AmgId = (string) data["discography"][i]["ids"]["amgPopId"];
+                release.StringDate = (string) data["discography"][i]["year"];
+                release.Type = (string) data["discography"][i]["type"];
+                release.Label = (string) data["discography"][i]["label"];
+                releaseList.Add(release);
+            }
         }
-        
+
         public string CalculateRoviSignature()
         {
             var input = apikey + apisecret + UnixTimeNow();

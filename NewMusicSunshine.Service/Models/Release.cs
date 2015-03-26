@@ -17,6 +17,9 @@ namespace NewMusicSunshine.Service.Models
         public string Label { get; set; }
         public string Genre { get; set; }
         public string ASIN { get; set; }
+        public string Type { get; set; }
+        public string RoviId { get; set; }
+        public string AmgId { get; set; }
 
         public string StringDate
         {
@@ -41,7 +44,8 @@ namespace NewMusicSunshine.Service.Models
                     var ym = d.Split(new char[] { '-', '/', '.', '\\' });
                     return new DateTime(Int16.Parse(ym[0]), Int16.Parse(ym[1]), 1);
                 case 10:
-                    var ymd = d.Split(new char[] { '-', '/', '.', '\\' });
+                    string corrected = d.Replace("??", "01");
+                    var ymd = corrected.Split(new char[] { '-', '/', '.', '\\' });
                     return new DateTime(Int16.Parse(ymd[0]), Int16.Parse(ymd[1]), Int16.Parse(ymd[2]));
                 default:
                     return DateTime.MinValue;
