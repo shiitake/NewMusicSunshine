@@ -23,6 +23,7 @@ namespace NewReleasesConsole
             rovi.GetArtistListFromRovi(artist).Wait();
             Console.WriteLine("Getting release List: ");
             rovi.GetNewReleasesFromRovi(id).Wait();
+            Console.ReadLine();
         }
     }
 }

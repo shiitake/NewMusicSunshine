@@ -145,7 +145,6 @@ namespace NewMusicSunshine.Service.Providers
         public string UnixTimeNow()
         {
             var timeSpan = (Int32)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
-            Console.WriteLine("Seconds: " + timeSpan);
             return timeSpan.ToString();
         }
 

@@ -60,6 +60,59 @@ namespace NewMusicSunshine.Service.Providers
             //return artistAsin;
         }
 
+        public async void GetAmazonReleaseByArtist(string artist)
+        {
+            //        This will pull up the music releases by an artist ordered from newest to oldest. (Includes future music and release dates)
+            /*
+            http://webservices.amazon.com/onca/xml?
+            Service=AWSECommerceService
+            &AssociateTag=newmussun-20
+            &Operation=ItemSearch
+            &ResponseGroup=Medium
+            &SearchIndex=Music
+            &Artist=The+Mountain+Goats
+            &BrowseNode=2334136011
+            &Sort=-releasedate
+            &Version=2013-08-01
+            */
+
+            DateTime now = DateTime.UtcNow;
+            string timestamp = now.ToString("yyyy-MM-ddTHH:mm:ss.000Z");
+
+            // build query
+            var queryString = BuildReleaseQueryString(artist, WebUtility.UrlEncode(timestamp));
+            var canonicalRequest = BuildCanonicalRequest(queryString);
+
+            // sign the data
+            var signature = GetRequestSignature(canonicalRequest, secretKey);
+
+            XDocument docResponse = null;
+            Uri baseuri = new Uri("http://webservices.amazon.com/onca/xml");
+
+            var urlparams = String.Format("?{0}&Signature={1}", queryString, WebUtility.UrlEncode(signature));
+            Uri param = new Uri(urlparams, UriKind.Relative);
+            Uri combinedUri = new Uri(baseuri, param);
+
+            Task<string> amazonCall = GetAmazonResponse(combinedUri.AbsoluteUri);
+            string responseRaw = await amazonCall;
+
+            if (responseRaw != null)
+            {
+                using (XmlReader reader = XmlReader.Create(new StringReader(responseRaw)))
+                {
+                    docResponse = XDocument.Load(reader);
+                }
+            }
+            var artistAsin = "";
+
+            if (docResponse != null)
+            {
+                artistAsin = ProcessAmazonReleases(docResponse);
+            }
+            Console.WriteLine("Artist Amazon Id: " + artistAsin);
+
+        }
+
         public string BuildQueryString(string asinList, string timestamp)
         {
             List<string> paramList = new List<string>();
@@ -71,6 +124,43 @@ namespace NewMusicSunshine.Service.Providers
             paramList.Add("AWSAccessKeyId=" + accessKeyId);
             paramList.Add("AssociateTag=" + associateTag);
             paramList.Add("ItemId=" + asinList);
+            paramList.Add("Timestamp=" + timestamp);
+            var sortedList = SortParametersList(paramList);
+            StringBuilder queryStringBuilder = new StringBuilder();
+            foreach (string s in sortedList)
+            {
+                queryStringBuilder.Append(s + "&");
+            }
+            queryStringBuilder.Remove(queryStringBuilder.Length - 1, 1);
+            return queryStringBuilder.ToString();
+        }
+
+        public string BuildReleaseQueryString(string artist, string timestamp)
+        {
+            /*
+           http://webservices.amazon.com/onca/xml?
+           Service=AWSECommerceService
+           &AssociateTag=newmussun-20
+           &Operation=ItemSearch
+           &ResponseGroup=Medium
+           &SearchIndex=Music
+           &Artist=The+Mountain+Goats
+           &BrowseNode=2334136011
+           &Sort=-releasedate
+           &Version=2013-08-01
+           */
+            
+            List<string> paramList = new List<string>();
+            paramList.Add("Operation=ItemSearch");
+            paramList.Add("ResponseGroup=Medium");
+            paramList.Add("Service=AWSECommerceService");
+            paramList.Add("Version=2100-01-01");
+            paramList.Add("SearchIndex=Music");
+            paramList.Add("BrowseNode=2334136011");
+            paramList.Add("Sort=-releasedate");
+            paramList.Add("AWSAccessKeyId=" + accessKeyId);
+            paramList.Add("AssociateTag=" + associateTag);
+            paramList.Add("Artist=" + artist);
             paramList.Add("Timestamp=" + timestamp);
             var sortedList = SortParametersList(paramList);
             StringBuilder queryStringBuilder = new StringBuilder();
