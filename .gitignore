@@ -20,6 +20,8 @@ build/
 
 #Connection Stings
 connectionStrings.config
+ConfigValues.xml
+appSettings.config
 
 # MSTest test Results
 [Tt]est[Rr]esult*/
