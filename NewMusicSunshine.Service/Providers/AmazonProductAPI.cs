@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Reflection.Emit;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using NewMusicSunshine.Service.Configuration;
 using NewMusicSunshine.Service.Models;
 using System.Xml;
 using System.Xml.Linq;
@@ -16,12 +19,21 @@ namespace NewMusicSunshine.Service.Providers
 {
     public class AmazonProductAPI
     {
-        string accessKeyId = "";
-        string secretKey = "";
-        string associateTag = "newmussun-20";
-        public static string UserAgent = @"NewMusicSunshine/0.1 +https://github.com/shiitake/NewMusicSunshine";
+        private readonly string _accessKeyId;
+        private readonly string _secretKey;
+        private readonly string _associateTag;
+        public static string UserAgent;
 
-        public async void GetAmazonArtistID(string asinList)
+        public AmazonProductAPI()
+        {
+            var appSettings = new AppSettings();
+            _accessKeyId = appSettings.AmazonAccessKeyId;
+            _secretKey = appSettings.AmazonSecretKey;
+            _associateTag = appSettings.AmazonAssociateTag;
+            UserAgent = appSettings.UserAgent;
+        }
+
+        public async void GetAmazonArtistId(string asinList)
         {
             DateTime now = DateTime.UtcNow;
             string timestamp = now.ToString("yyyy-MM-ddTHH:mm:ss.000Z");
@@ -31,7 +43,7 @@ namespace NewMusicSunshine.Service.Providers
             var canonicalRequest = BuildCanonicalRequest(queryString);
 
             // sign the data
-            var signature = GetRequestSignature(canonicalRequest, secretKey);
+            var signature = GetRequestSignature(canonicalRequest, _secretKey);
 
             XDocument docResponse = null;
             Uri baseuri = new Uri("http://webservices.amazon.com/onca/xml");
@@ -54,10 +66,63 @@ namespace NewMusicSunshine.Service.Providers
 
             if (docResponse != null)
             {
-                artistAsin = ProcessAmazonReleases(docResponse);
+                artistAsin = ProcessAmazonArtistId(docResponse);
             }
-            Console.WriteLine("Artist Amazon Id: " + artistAsin);
-            //return artistAsin;
+            if (artistAsin.Length > 0)
+            {
+                Console.WriteLine("Artist Amazon Id: " + artistAsin);
+                GetAmazonArtistNameById(artistAsin);
+            }
+            else
+            {
+                Console.WriteLine("Unable to find Amazon Artist ID");
+            }
+        }
+
+        public async void GetAmazonArtistNameById(string id)
+        {
+            DateTime now = DateTime.UtcNow;
+            string timestamp = now.ToString("yyyy-MM-ddTHH:mm:ss.000Z");
+
+            // build query
+            var queryString = BuildArtistNameQueryString(id, WebUtility.UrlEncode(timestamp));
+            var canonicalRequest = BuildCanonicalRequest(queryString);
+
+            // sign the data
+            var signature = GetRequestSignature(canonicalRequest, _secretKey);
+
+            XDocument docResponse = null;
+            Uri baseuri = new Uri("http://webservices.amazon.com/onca/xml");
+
+            var urlparams = String.Format("?{0}&Signature={1}", queryString, WebUtility.UrlEncode(signature));
+            Uri param = new Uri(urlparams, UriKind.Relative);
+            Uri combinedUri = new Uri(baseuri, param);
+
+            Task<string> amazonCall = GetAmazonResponse(combinedUri.AbsoluteUri);
+            string responseRaw = await amazonCall;
+
+            if (responseRaw != null)
+            {
+                using (XmlReader reader = XmlReader.Create(new StringReader(responseRaw)))
+                {
+                    docResponse = XDocument.Load(reader);
+                }
+            }
+            var artistName = "";
+
+            if (docResponse != null)
+            {
+                artistName = ProcessAmazonArtistName(docResponse);
+            }
+            if (artistName.Length > 0)
+            {
+                Console.WriteLine("Artist name: " + artistName);
+                GetAmazonReleaseByArtist(artistName);
+            }
+            else
+            {
+                Console.WriteLine("Unable to find Amazon Artist ID");
+            }
         }
 
         public async void GetAmazonReleaseByArtist(string artist)
@@ -84,7 +149,7 @@ namespace NewMusicSunshine.Service.Providers
             var canonicalRequest = BuildCanonicalRequest(queryString);
 
             // sign the data
-            var signature = GetRequestSignature(canonicalRequest, secretKey);
+            var signature = GetRequestSignature(canonicalRequest, _secretKey);
 
             XDocument docResponse = null;
             Uri baseuri = new Uri("http://webservices.amazon.com/onca/xml");
@@ -103,14 +168,24 @@ namespace NewMusicSunshine.Service.Providers
                     docResponse = XDocument.Load(reader);
                 }
             }
-            var artistAsin = "";
+            var releaseList = new List<Release>();
 
             if (docResponse != null)
             {
-                artistAsin = ProcessAmazonReleases(docResponse);
+                releaseList = ProcessAmazonReleases(docResponse);
             }
-            Console.WriteLine("Artist Amazon Id: " + artistAsin);
-
+            if (releaseList.Count > 0)
+            {
+                Console.WriteLine(releaseList.Count + "release(s) found");
+                foreach (var release in releaseList)
+                {
+                    Console.WriteLine("Name: " + release.Name + "\tDate: " +release.ReleaseDate);
+                }
+            }
+            else
+            {
+                Console.WriteLine("No releases found for " + artist);
+            }
         }
 
         public string BuildQueryString(string asinList, string timestamp)
@@ -121,8 +196,8 @@ namespace NewMusicSunshine.Service.Providers
             paramList.Add("Service=AWSECommerceService");
             paramList.Add("Version=2100-01-01");
             paramList.Add("RelationshipType=DigitalMusicPrimaryArtist");
-            paramList.Add("AWSAccessKeyId=" + accessKeyId);
-            paramList.Add("AssociateTag=" + associateTag);
+            paramList.Add("AWSAccessKeyId=" + _accessKeyId);
+            paramList.Add("AssociateTag=" + _associateTag);
             paramList.Add("ItemId=" + asinList);
             paramList.Add("Timestamp=" + timestamp);
             var sortedList = SortParametersList(paramList);
@@ -151,15 +226,15 @@ namespace NewMusicSunshine.Service.Providers
            */
             
             List<string> paramList = new List<string>();
+            paramList.Add("Service=AWSECommerceService");
             paramList.Add("Operation=ItemSearch");
             paramList.Add("ResponseGroup=Medium");
-            paramList.Add("Service=AWSECommerceService");
             paramList.Add("Version=2100-01-01");
             paramList.Add("SearchIndex=Music");
             paramList.Add("BrowseNode=2334136011");
             paramList.Add("Sort=-releasedate");
-            paramList.Add("AWSAccessKeyId=" + accessKeyId);
-            paramList.Add("AssociateTag=" + associateTag);
+            paramList.Add("AWSAccessKeyId=" + _accessKeyId);
+            paramList.Add("AssociateTag=" + _associateTag);
             paramList.Add("Artist=" + artist);
             paramList.Add("Timestamp=" + timestamp);
             var sortedList = SortParametersList(paramList);
@@ -172,6 +247,27 @@ namespace NewMusicSunshine.Service.Providers
             return queryStringBuilder.ToString();
         }
 
+        public string BuildArtistNameQueryString(string id, string timestamp)
+        {
+            List<string> paramList = new List<string>();
+            paramList.Add("Service=AWSECommerceService");
+            paramList.Add("Operation=ItemLookup");
+            paramList.Add("ResponseGroup=Small");
+            paramList.Add("Version=2100-01-01");
+            paramList.Add("AWSAccessKeyId=" + _accessKeyId);
+            paramList.Add("AssociateTag=" + _associateTag);
+            paramList.Add("ItemId=" + id);
+            paramList.Add("Timestamp=" + timestamp);
+            var sortedList = SortParametersList(paramList);
+            StringBuilder queryStringBuilder = new StringBuilder();
+            foreach (string s in sortedList)
+            {
+                queryStringBuilder.Append(s + "&");
+            }
+            queryStringBuilder.Remove(queryStringBuilder.Length - 1, 1);
+            return queryStringBuilder.ToString();
+        }
+        
         public List<string> SortParametersList(List<string> paramList)
         {
             ByteOrderComparer comparer = new ByteOrderComparer();
@@ -201,7 +297,7 @@ namespace NewMusicSunshine.Service.Providers
             return Convert.ToBase64String(hashBytes);
         }
 
-        public string ProcessAmazonReleases(XDocument data)
+        public string ProcessAmazonArtistId(XDocument data)
         {
             XNamespace aw = data.Root.Name.NamespaceName;
             var artistasin = "";
@@ -226,6 +322,68 @@ namespace NewMusicSunshine.Service.Providers
                 }
             }
             return artistasin;
+        }
+
+        public List<Release> ProcessAmazonReleases(XDocument data)
+        {
+            XNamespace aw = data.Root.Name.NamespaceName;
+            var releaseList = new List<Release>();
+            IEnumerable<XElement> items = null;
+            var count = data.ElementOrEmpty(aw, "ItemSearchResponse")
+                .ElementOrEmpty(aw, "Items")
+                .ElementOrEmpty(aw, "TotalResults").Value;
+            if (Int16.Parse(count) > 0)
+            {
+                items = (
+                    from item in
+                        data.ElementOrEmpty(aw, "ItemSearchResponse")
+                        .ElementOrEmpty(aw, "Items")
+                        .Elements(aw + "Item")
+                    select item);
+                foreach (XElement item in items)
+                {
+                    var release = new Release();
+                    release.ASIN = item.ElementOrEmpty(aw, "ASIN").ValueOrEmpty();
+                    release.Name = item.ElementOrEmpty(aw, "ItemAttributes")
+                        .ElementOrEmpty(aw, "Title").ValueOrEmpty();
+                    release.StringDate = item.ElementOrEmpty(aw, "ItemAttributes")
+                        .ElementOrEmpty(aw, "ReleaseDate").ValueOrEmpty();
+                    release.Label = item.ElementOrEmpty(aw, "ItemAttributes")
+                        .ElementOrEmpty(aw, "Label").ValueOrEmpty();
+                    release.Type = item.ElementOrEmpty(aw, "ItemAttributes")
+                        .ElementOrEmpty(aw, "Binding").ValueOrEmpty();
+                    release.Type = item.ElementOrEmpty(aw, "ItemAttributes")
+                        .ElementOrEmpty(aw, "UPC").ValueOrEmpty();
+                    release.Image = item.ElementOrEmpty(aw, "LargeImage")
+                        .ElementOrEmpty(aw, "URL").ValueOrEmpty();
+                    releaseList.Add(release);
+                }
+            }
+                return releaseList;            
+        }
+
+        public string ProcessAmazonArtistName(XDocument data)
+        {
+            XNamespace aw = data.Root.Name.NamespaceName;
+            var artistName = "";
+            IEnumerable<XElement> items = null;
+            items = (
+                from item in
+                    data.ElementOrEmpty(aw, "ItemLookupResponse")
+                        .ElementOrEmpty(aw, "Items")
+                        .Elements(aw + "Item")
+                select item);
+            foreach (XElement item in items)
+            {
+                artistName =
+                    item.ElementOrEmpty(aw, "ItemAttributes")
+                        .ElementOrEmpty(aw, "Title").Value;
+                if (artistName.Length > 0)
+                {
+                    return artistName;
+                }
+            }
+            return artistName;
         }
 
         public async Task<string> GetAmazonResponse(string uri)

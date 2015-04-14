@@ -20,6 +20,8 @@ namespace NewMusicSunshine.Service.Models
         public string Type { get; set; }
         public string RoviId { get; set; }
         public string AmgId { get; set; }
+        public string UPC {get; set; }
+        public string Image { get; set; }
 
         public string StringDate
         {

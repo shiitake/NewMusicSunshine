@@ -43,6 +43,10 @@
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\packages\DiscogsNet 1.6.1\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="NLog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\NLog.2.1.0\lib\net45\NLog.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
@@ -55,6 +59,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration\AppSettings.cs" />
+    <Compile Include="Configuration\IAppSettings.cs" />
     <Compile Include="GetNewReleases.cs" />
     <Compile Include="Models\Artist.cs" />
     <Compile Include="Models\Release.cs" />
@@ -70,9 +76,7 @@
     <None Include="packages.config" />
     <None Include="template.appSettings.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Configuration\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\NewMusicSunshine.Core\NewMusicSunshine.Core.csproj">
       <Project>{c5ff70ac-b51d-47b1-a128-d6ae202366a8}</Project>

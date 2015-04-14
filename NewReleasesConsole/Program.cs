@@ -7,6 +7,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
+using NewMusicSunshine.Service;
 using NewMusicSunshine.Service.Providers;
 
 namespace NewReleasesConsole
@@ -15,14 +16,13 @@ namespace NewReleasesConsole
     {
         static void Main(string[] args)
         {
-            var artist = "the mountain goats";
-            var id = "MN0000480830";
-            
-            var rovi = new RoviCloud();
-            Console.WriteLine("Getting artist List: ");
-            rovi.GetArtistListFromRovi(artist).Wait();
-            Console.WriteLine("Getting release List: ");
-            rovi.GetNewReleasesFromRovi(id).Wait();
+            //var rovi = new RoviCloud();
+            //Console.WriteLine("Getting artist List: ");
+            //rovi.GetArtistListFromRovi(artist).Wait();
+            //Console.WriteLine("Getting release List: ");
+            //rovi.GetNewReleasesFromRovi(id).Wait();
+            var releases = new GetNewReleases();
+            releases.GetReleases();
             Console.ReadLine();
         }
     }

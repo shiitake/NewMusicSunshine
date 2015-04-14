@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using NewMusicSunshine.Service.Configuration;
 using NewMusicSunshine.Service.Models;
 using System.Xml;
 using System.Xml.Linq;
@@ -15,7 +16,13 @@ namespace NewMusicSunshine.Service.Providers
 {
     public class MusicBrainz
     {
-        public static string UserAgent = @"NewMusicSunshine/0.1 +https://github.com/shiitake/NewMusicSunshine";
+        public static string UserAgent;
+
+        public MusicBrainz()
+        {
+            var appSettings = new AppSettings();
+            UserAgent = appSettings.UserAgent;
+        }
 
         private string BuildMBSearchUrl(string arid)
         {
@@ -180,13 +187,7 @@ namespace NewMusicSunshine.Service.Providers
                     releaseList.Add(rel);
                 }
             }
-  //          GetAmazonArtistID(asinList);
-
             return releaseList;
         }
-
-
-
-
     }
 }

@@ -11,7 +11,7 @@ namespace NewMusicSunshine.Service
 {
     public class GetNewReleases
     {
-        private static void GetReleases()
+        public void GetReleases()
         {
             Console.WriteLine("Enter artist name or enter to exit.");
             Console.Write(">");

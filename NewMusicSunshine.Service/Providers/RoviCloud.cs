@@ -5,9 +5,11 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Security.Cryptography;
+using NewMusicSunshine.Service.Configuration;
 using NewMusicSunshine.Service.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -16,9 +18,20 @@ namespace NewMusicSunshine.Service.Providers
 {
     public class RoviCloud
     {
-        public static string apikey = "";
-        public static string apisecret = "";
-        public static string UserAgent = @"NewMusicSunshine/0.1 +https://github.com/shiitake/NewMusicSunshine";
+        private readonly string _apikey;
+        private readonly string _apisecret;
+        public static string UserAgent;
+        public static string artist = "the mountain goats";
+        public static string id = "MN0000480830";
+
+        public RoviCloud()
+        {
+            var appSettings = new AppSettings();
+            _apikey = appSettings.RoviApiKey;
+            _apisecret = appSettings.RoviApiSecret;
+            UserAgent = appSettings.UserAgent;
+        }
+
 
         public async Task GetArtistListFromRovi(string name)
         {
@@ -46,7 +59,7 @@ namespace NewMusicSunshine.Service.Providers
         {
             var signature = CalculateRoviSignature();
             StringBuilder sb = new StringBuilder();
-            sb.Append("apikey=" + apikey + "&");
+            sb.Append("apikey=" + _apikey + "&");
             sb.Append("sig=" + signature + "&");
             sb.Append("query=" + artist + "&");
             sb.Append("entitytype=artist&");
@@ -102,8 +115,8 @@ namespace NewMusicSunshine.Service.Providers
             sb.Append("offset=0&");
             sb.Append("country=US&");
             sb.Append("language=en&");
-            sb.Append("format=json&"); ;
-            sb.Append("apikey=" + apikey + "&");
+            sb.Append("format=json&"); 
+            sb.Append("apikey=" + _apikey + "&");
             sb.Append("sig=" + signature);
             return sb.ToString();
         }
@@ -128,7 +141,7 @@ namespace NewMusicSunshine.Service.Providers
 
         public string CalculateRoviSignature()
         {
-            var input = apikey + apisecret + UnixTimeNow();
+            var input = _apikey + _apisecret + UnixTimeNow();
             Console.WriteLine(input);
             MD5 md5 = System.Security.Cryptography.MD5.Create();
             byte[] inpuBytes = System.Text.Encoding.ASCII.GetBytes(input);
