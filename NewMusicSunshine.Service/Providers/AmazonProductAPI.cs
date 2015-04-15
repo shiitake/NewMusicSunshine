@@ -9,6 +9,7 @@ using System.Reflection.Emit;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using NewMusicSunshine.Service.Configuration;
 using NewMusicSunshine.Service.Models;
 using System.Xml;
@@ -39,7 +40,7 @@ namespace NewMusicSunshine.Service.Providers
             string timestamp = now.ToString("yyyy-MM-ddTHH:mm:ss.000Z");
 
             // build query
-            var queryString = BuildQueryString(asinList, WebUtility.UrlEncode(timestamp));
+            var queryString = BuildArtistIdQueryString(WebUtility.UrlEncode(asinList), WebUtility.UrlEncode(timestamp));
             var canonicalRequest = BuildCanonicalRequest(queryString);
 
             // sign the data
@@ -127,25 +128,11 @@ namespace NewMusicSunshine.Service.Providers
 
         public async void GetAmazonReleaseByArtist(string artist)
         {
-            //        This will pull up the music releases by an artist ordered from newest to oldest. (Includes future music and release dates)
-            /*
-            http://webservices.amazon.com/onca/xml?
-            Service=AWSECommerceService
-            &AssociateTag=newmussun-20
-            &Operation=ItemSearch
-            &ResponseGroup=Medium
-            &SearchIndex=Music
-            &Artist=The+Mountain+Goats
-            &BrowseNode=2334136011
-            &Sort=-releasedate
-            &Version=2013-08-01
-            */
-
             DateTime now = DateTime.UtcNow;
             string timestamp = now.ToString("yyyy-MM-ddTHH:mm:ss.000Z");
-
+            
             // build query
-            var queryString = BuildReleaseQueryString(artist, WebUtility.UrlEncode(timestamp));
+            var queryString = BuildReleaseQueryString(HttpUtility.UrlPathEncode(artist), WebUtility.UrlEncode(timestamp));
             var canonicalRequest = BuildCanonicalRequest(queryString);
 
             // sign the data
@@ -188,7 +175,7 @@ namespace NewMusicSunshine.Service.Providers
             }
         }
 
-        public string BuildQueryString(string asinList, string timestamp)
+        public string BuildArtistIdQueryString(string asinList, string timestamp)
         {
             List<string> paramList = new List<string>();
             paramList.Add("Operation=ItemLookup");
@@ -199,43 +186,6 @@ namespace NewMusicSunshine.Service.Providers
             paramList.Add("AWSAccessKeyId=" + _accessKeyId);
             paramList.Add("AssociateTag=" + _associateTag);
             paramList.Add("ItemId=" + asinList);
-            paramList.Add("Timestamp=" + timestamp);
-            var sortedList = SortParametersList(paramList);
-            StringBuilder queryStringBuilder = new StringBuilder();
-            foreach (string s in sortedList)
-            {
-                queryStringBuilder.Append(s + "&");
-            }
-            queryStringBuilder.Remove(queryStringBuilder.Length - 1, 1);
-            return queryStringBuilder.ToString();
-        }
-
-        public string BuildReleaseQueryString(string artist, string timestamp)
-        {
-            /*
-           http://webservices.amazon.com/onca/xml?
-           Service=AWSECommerceService
-           &AssociateTag=newmussun-20
-           &Operation=ItemSearch
-           &ResponseGroup=Medium
-           &SearchIndex=Music
-           &Artist=The+Mountain+Goats
-           &BrowseNode=2334136011
-           &Sort=-releasedate
-           &Version=2013-08-01
-           */
-            
-            List<string> paramList = new List<string>();
-            paramList.Add("Service=AWSECommerceService");
-            paramList.Add("Operation=ItemSearch");
-            paramList.Add("ResponseGroup=Medium");
-            paramList.Add("Version=2100-01-01");
-            paramList.Add("SearchIndex=Music");
-            paramList.Add("BrowseNode=2334136011");
-            paramList.Add("Sort=-releasedate");
-            paramList.Add("AWSAccessKeyId=" + _accessKeyId);
-            paramList.Add("AssociateTag=" + _associateTag);
-            paramList.Add("Artist=" + artist);
             paramList.Add("Timestamp=" + timestamp);
             var sortedList = SortParametersList(paramList);
             StringBuilder queryStringBuilder = new StringBuilder();
@@ -268,6 +218,36 @@ namespace NewMusicSunshine.Service.Providers
             return queryStringBuilder.ToString();
         }
         
+        public string BuildReleaseQueryString(string artist, string timestamp, int page = 0)
+        {
+           List<string> paramList = new List<string>();
+            paramList.Add("Service=AWSECommerceService");
+            paramList.Add("Operation=ItemSearch");
+            paramList.Add("ResponseGroup=Medium");
+            paramList.Add("Version=2100-01-01");
+            paramList.Add("SearchIndex=Music");
+            //only returns vinyl
+            //paramList.Add("BrowseNode=2334136011");
+            paramList.Add("BrowseNode=5174");
+            paramList.Add("Sort=-releasedate");
+            paramList.Add("AWSAccessKeyId=" + _accessKeyId);
+            paramList.Add("AssociateTag=" + _associateTag);
+            paramList.Add("Artist=" + artist);
+            paramList.Add("Timestamp=" + timestamp);
+            if (page > 0)
+            {
+                paramList.Add("ItemPage=" + page);
+            }
+            var sortedList = SortParametersList(paramList);
+            StringBuilder queryStringBuilder = new StringBuilder();
+            foreach (string s in sortedList)
+            {
+                queryStringBuilder.Append(s + "&");
+            }
+            queryStringBuilder.Remove(queryStringBuilder.Length - 1, 1);
+            return queryStringBuilder.ToString();
+        }
+
         public List<string> SortParametersList(List<string> paramList)
         {
             ByteOrderComparer comparer = new ByteOrderComparer();
@@ -352,7 +332,7 @@ namespace NewMusicSunshine.Service.Providers
                         .ElementOrEmpty(aw, "Label").ValueOrEmpty();
                     release.Type = item.ElementOrEmpty(aw, "ItemAttributes")
                         .ElementOrEmpty(aw, "Binding").ValueOrEmpty();
-                    release.Type = item.ElementOrEmpty(aw, "ItemAttributes")
+                    release.UPC = item.ElementOrEmpty(aw, "ItemAttributes")
                         .ElementOrEmpty(aw, "UPC").ValueOrEmpty();
                     release.Image = item.ElementOrEmpty(aw, "LargeImage")
                         .ElementOrEmpty(aw, "URL").ValueOrEmpty();
