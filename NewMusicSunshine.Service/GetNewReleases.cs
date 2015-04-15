@@ -50,16 +50,25 @@ namespace NewMusicSunshine.Service
                     var releaseList = newReleases.GetAsinDataFromMusicBrainz(artist.Id);
                     if (releaseList.Count > 0)
                     {
-                        Console.WriteLine("Possible Releases:");
+                        var asinList = new string[5];
+                        count = 0;
+                        //Console.WriteLine("Possible Releases:");
                         foreach (Release release in releaseList)
                         {
-                            Console.WriteLine("================");
-                            Console.WriteLine("Title: " + release.Name);
-                            Console.WriteLine("Label: " + release.Label);
-                            Console.WriteLine("Release Date: " + release.ReleaseDate);
-                            Console.WriteLine("ASIN: " + release.ASIN);
-                            Console.WriteLine();
+                           if (release.ASIN.Length > 0 && count < 5)
+                           {
+                               asinList[++count -1] = release.ASIN;
+                           }
+                            //Console.WriteLine("================");
+                            //Console.WriteLine("Title: " + release.Name);
+                            //Console.WriteLine("Label: " + release.Label);
+                            //Console.WriteLine("Release Date: " + release.ReleaseDate);
+                            //Console.WriteLine("ASIN: " + release.ASIN);
+                            //Console.WriteLine();
                         }
+                        
+                        var amazonRequest = new AmazonProductAPI();
+                        amazonRequest.GetAmazonArtistId(string.Join(",", asinList));
                     }
                     else
                     {

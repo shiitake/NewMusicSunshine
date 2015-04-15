@@ -60,8 +60,16 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="appSettings.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
+    <None Include="template.appSettings.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NewMusicSunshine.Core\NewMusicSunshine.Core.csproj">
@@ -82,10 +90,12 @@
     <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
   </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
+       Other similar extension points exist, see Microsoft.Common.targets. -->
+  <UsingTask TaskName="ConfigBuilder" AssemblyFile="..\packages\ConfigBuilder.1.0.5\lib\ConfigBuilderTask.dll" />
+  <Target Name="BuildConfig" BeforeTargets="BeforeBuild">
+    <ConfigBuilder ValuesFilePath="../ConfigValues.xml" ProjectName="$(MSBuildProjectName)" />
   </Target>
-  <Target Name="AfterBuild">
+  <!--  <Target Name="AfterBuild">
   </Target>
   -->
 </Project>
