@@ -63,20 +63,21 @@ namespace NewMusicSunshine.Service.Providers
             {
                 //checked release count                
                 XNamespace aw = docResponse.Root.Name.NamespaceName;
-                var count = int.Parse(docResponse.Element(aw + "metadata").Element(aw + "artist-list").Attribute("count").Value);
+                var count = int.Parse(docResponse.ElementOrEmpty(aw, "metadata").ElementOrEmpty(aw, "artist-list").AttributeOrEmpty("count").Value);
                 if (count > 0)
                 {
                     IEnumerable<XElement> artists = null;
                     artists = (
                         from artist in
-                            docResponse.Element(aw + "metadata").Element(aw + "artist-list").Elements(aw + "artist")
+                            docResponse.ElementOrEmpty(aw, "metadata").ElementOrEmpty(aw,"artist-list").Elements(aw + "artist")
                         select artist
                         );
                     foreach (XElement artist in artists)
                     {
                         var art = new Artist();
-                        art.Name = artist.Element(aw + "name").Value;
-                        art.Id = artist.Attribute("id").Value;
+                        art.Name = artist.ElementOrEmpty(aw, "name").Value;
+                        art.Id = artist.AttributeOrEmpty("id").Value;
+                        art.Description = artist.ElementOrEmpty(aw, "disambiguation").Value;
                         //art.Country = artist.Element(aw + "area")
                         //        .Element(aw + "name").Value ?? "";
                         artistList.Add(art);

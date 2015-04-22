@@ -34,13 +34,26 @@ namespace NewMusicSunshine.Service.Providers
             UserAgent = appSettings.UserAgent;
         }
 
-        public async void GetAmazonArtistId(string asinList)
+        public async void GetAmazonArtistId(Artist artist)
         {
+            var asinList = new string[5];
+            var count = 0;
+            if (artist.Releases.Count > 0)
+            {
+                foreach (Release release in artist.Releases)
+                {
+                    if (release.ASIN.Length > 0 && count < 5)
+                    {
+                        asinList[++count - 1] = release.ASIN;
+                    }
+                } 
+            }
+            
             DateTime now = DateTime.UtcNow;
             string timestamp = now.ToString("yyyy-MM-ddTHH:mm:ss.000Z");
 
             // build query
-            var queryString = BuildArtistIdQueryString(WebUtility.UrlEncode(asinList), WebUtility.UrlEncode(timestamp));
+            var queryString = BuildArtistIdQueryString(WebUtility.UrlEncode(string.Join(",", asinList)), WebUtility.UrlEncode(timestamp));
             var canonicalRequest = BuildCanonicalRequest(queryString);
 
             // sign the data
@@ -163,10 +176,10 @@ namespace NewMusicSunshine.Service.Providers
             }
             if (releaseList.Count > 0)
             {
-                Console.WriteLine(releaseList.Count + "release(s) found");
+                Console.WriteLine(releaseList.Count + " release(s) found");
                 foreach (var release in releaseList)
                 {
-                    Console.WriteLine("Name: " + release.Name + "\tDate: " +release.ReleaseDate);
+                    Console.WriteLine("Name: " + release.Name + "\tType: " + release.Type + "\tDate: " +release.ReleaseDate);
                 }
             }
             else
