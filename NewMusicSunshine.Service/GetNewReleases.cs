@@ -45,8 +45,9 @@ namespace NewMusicSunshine.Service
                 int choice;
                 bool valid = int.TryParse(Console.ReadLine(), out choice);
                 if (valid && choice > 0 && choice <= count)
+                
                 {
-                    var artist = results.Where(x => choice.Equals(x.Count)).FirstOrDefault();
+                    var artist = results.FirstOrDefault(x => choice.Equals(x.Count));
                     artist.Releases = newReleases.GetAsinDataFromMusicBrainz(artist.Id);
                     var amazonRequest = new AmazonProductAPI();
                     amazonRequest.GetAmazonArtistId(artist);
