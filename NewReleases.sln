@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.27004.2005
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewReleases.Service", "NewReleases\NewReleases.Service.csproj", "{3C181D7D-F05A-451A-85AA-E5155C04EE12}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewReleasesConsole", "NewReleasesConsole\NewReleasesConsole.csproj", "{5D3872DE-185E-4498-BAB5-FB50464EE5DF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewReleasesConsole.Old", "NewReleasesConsole\NewReleasesConsole.Old.csproj", "{5D3872DE-185E-4498-BAB5-FB50464EE5DF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewMusicSunshine.Website", "NewMusicSunshine.Website\NewMusicSunshine.Website.csproj", "{6C8C6D2D-003B-49DE-919D-FD23386C7E56}"
 EndProject
@@ -20,12 +20,18 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{7C859F
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewMusicSunshine.Service", "NewMusicSunshine.Service\NewMusicSunshine.Service.csproj", "{D81E27E2-22B5-4BD6-92F9-1DD41984FB3E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewMusicSunshine.Service.Old", "NewMusicSunshine.Service.Old\NewMusicSunshine.Service.Old.csproj", "{D81E27E2-22B5-4BD6-92F9-1DD41984FB3E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Config", "Config", "{864B4EA7-D186-4AA2-9C70-72461B178512}"
 	ProjectSection(SolutionItems) = preProject
 		ConfigValues.xml = ConfigValues.xml
 	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NewMusicSunshine.Console", "NewMusicSunshine.Console\NewMusicSunshine.Console.csproj", "{552AAB83-4360-4BEB-82C2-FB53ADB597D6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NewMusicSunshine.Service", "NewMusicSunshine.Service\NewMusicSunshine.Service.csproj", "{1B6D6DAF-E415-4E8A-9DB8-5F6078B3E201}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nms.Core", "Nms.Core\Nms.Core.csproj", "{967C38DA-1273-4948-859D-21B4F3E89848}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -38,7 +44,6 @@ Global
 		{3C181D7D-F05A-451A-85AA-E5155C04EE12}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3C181D7D-F05A-451A-85AA-E5155C04EE12}.Release|Any CPU.Build.0 = Release|Any CPU
 		{5D3872DE-185E-4498-BAB5-FB50464EE5DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5D3872DE-185E-4498-BAB5-FB50464EE5DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5D3872DE-185E-4498-BAB5-FB50464EE5DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5D3872DE-185E-4498-BAB5-FB50464EE5DF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6C8C6D2D-003B-49DE-919D-FD23386C7E56}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -54,11 +59,25 @@ Global
 		{C5FF70AC-B51D-47B1-A128-D6AE202366A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C5FF70AC-B51D-47B1-A128-D6AE202366A8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D81E27E2-22B5-4BD6-92F9-1DD41984FB3E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D81E27E2-22B5-4BD6-92F9-1DD41984FB3E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D81E27E2-22B5-4BD6-92F9-1DD41984FB3E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D81E27E2-22B5-4BD6-92F9-1DD41984FB3E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{552AAB83-4360-4BEB-82C2-FB53ADB597D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{552AAB83-4360-4BEB-82C2-FB53ADB597D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{552AAB83-4360-4BEB-82C2-FB53ADB597D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{552AAB83-4360-4BEB-82C2-FB53ADB597D6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1B6D6DAF-E415-4E8A-9DB8-5F6078B3E201}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B6D6DAF-E415-4E8A-9DB8-5F6078B3E201}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B6D6DAF-E415-4E8A-9DB8-5F6078B3E201}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1B6D6DAF-E415-4E8A-9DB8-5F6078B3E201}.Release|Any CPU.Build.0 = Release|Any CPU
+		{967C38DA-1273-4948-859D-21B4F3E89848}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{967C38DA-1273-4948-859D-21B4F3E89848}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{967C38DA-1273-4948-859D-21B4F3E89848}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{967C38DA-1273-4948-859D-21B4F3E89848}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3175C265-D1A9-47AF-AB52-68F077EF4D83}
 	EndGlobalSection
 EndGlobal

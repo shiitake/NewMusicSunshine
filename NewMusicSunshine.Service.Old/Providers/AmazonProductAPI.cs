@@ -14,7 +14,7 @@ using NewMusicSunshine.Service.Configuration;
 using NewMusicSunshine.Service.Models;
 using System.Xml;
 using System.Xml.Linq;
-using Nms.Core;
+using NewMusicSunshine.Core;
 
 namespace NewMusicSunshine.Service.Providers
 {

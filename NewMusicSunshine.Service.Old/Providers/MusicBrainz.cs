@@ -2,15 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using NewMusicSunshine.Service.Configuration;
 using NewMusicSunshine.Service.Models;
 using System.Xml;
 using System.Xml.Linq;
-using Nms.Core;
+using NewMusicSunshine.Core;
 
 
 
@@ -19,13 +17,11 @@ namespace NewMusicSunshine.Service.Providers
     public class MusicBrainz
     {
         public static string UserAgent;
-        private string MusicBrainzUrl { get; set; }
 
         public MusicBrainz()
         {
             var appSettings = new AppSettings();
             UserAgent = appSettings.UserAgent;
-            MusicBrainzUrl = appSettings.MusicBrainzUrl;
         }
 
         private string BuildMBSearchUrl(string arid)
@@ -48,29 +44,19 @@ namespace NewMusicSunshine.Service.Providers
         {
             List<Artist> artistList = new List<Artist>();
             XDocument docResponse = null;
-            Uri baseUri = new Uri(MusicBrainzUrl);
+            var baseuri = "http://musicbrainz.org/ws/2/artist/?query=artist:";
 
-            using (var client = new HttpClient())
+            HttpWebRequest req = (HttpWebRequest)WebRequest.Create(baseuri + name);
+            req.Method = "GET";
+            req.UserAgent = UserAgent;
+            //req.ContentType = "application/x-www-form-urlencoded";
+
+            using (HttpWebResponse resp = (HttpWebResponse)req.GetResponse())
             {
-                client.BaseAddress = baseUri;
-                client.DefaultRequestHeaders.Add("User-Agent", UserAgent);
-                
-
-                var url = $"/ws/2/artist/?query=artist:{name}";
-                var request = new HttpRequestMessage(HttpMethod.Get, url);
-
-                // Send request and get response
-                var response = client.SendAsync(request).Result;
-
-                if (response.IsSuccessStatusCode)
+                using (XmlReader reader = XmlReader.Create(resp.GetResponseStream()))
                 {
-                    using (XmlReader reader = XmlReader.Create(response.Content.ReadAsStreamAsync().Result))
-                    {
-                        docResponse = XDocument.Load(reader);
-                    }
+                    docResponse = XDocument.Load(reader);
                 }
-
-
             }
 
             if (docResponse != null)
@@ -106,31 +92,31 @@ namespace NewMusicSunshine.Service.Providers
             //arid = "ad0ecd8b-805e-406e-82cb-5b00c3a3a29e";
             List<Release> releaseList = new List<Release>();
             XDocument docResponse = null;
-            var searchUrl = BuildMBSearchUrl(arid);
+            var url = BuildMBSearchUrl(arid);
+            var baseuri = "http://musicbrainz.org/ws/2/release/";
 
-            using (var client = new HttpClient())
+            HttpWebRequest req = (HttpWebRequest)WebRequest.Create(baseuri + "?query=" + WebUtility.UrlEncode(url));
+            req.Method = "GET";
+            req.UserAgent = UserAgent;
+            //req.ContentType = "application/x-www-form-urlencoded";
+
+            using (HttpWebResponse resp = (HttpWebResponse)req.GetResponse())
             {
-                client.BaseAddress = new Uri(MusicBrainzUrl);
-                client.DefaultRequestHeaders.Add("User-Agent", UserAgent);
-                var urlPath = $"/ws/2/release/?query={WebUtility.UrlEncode(searchUrl)}";
-                var request = new HttpRequestMessage(HttpMethod.Get, urlPath);
-                var response = client.SendAsync(request).Result;
-                if (response.IsSuccessStatusCode)
+                using (XmlReader reader = XmlReader.Create(resp.GetResponseStream()))
                 {
-                    using (XmlReader reader = XmlReader.Create(response.Content.ReadAsStreamAsync().Result))
-                    {
-                        docResponse = XDocument.Load(reader);
-                    }
+                    docResponse = XDocument.Load(reader);
                 }
             }
 
-            if (docResponse == null) return releaseList;
-            //checked release count
-            XNamespace aw = docResponse.Root.Name.NamespaceName;
-            var count = int.Parse(docResponse.Element(aw + "metadata").Element(aw + "release-list").Attribute("count").Value);
-            if (count > 0)
+            if (docResponse != null)
             {
-                releaseList = ProcessReleaseData(docResponse);
+                //checked release count
+                XNamespace aw = docResponse.Root.Name.NamespaceName;
+                var count = int.Parse(docResponse.Element(aw + "metadata").Element(aw + "release-list").Attribute("count").Value);
+                if (count > 0)
+                {
+                    releaseList = ProcessReleaseData(docResponse);
+                }
             }
             return releaseList;
         }

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Configuration;
+using System.IO;
+using Microsoft.Extensions.Configuration;
 using NLog;
 
 namespace NewMusicSunshine.Service.Configuration
@@ -13,59 +15,25 @@ namespace NewMusicSunshine.Service.Configuration
         public string UserAgent { get; set; }
         public string RoviApiKey { get; set; }
         public string RoviApiSecret { get; set; }
+        public string MusicBrainzUrl { get; set; }
+        private IConfiguration Configuration { get; set; }
 
         public AppSettings()
         {
             _logger = LogManager.GetCurrentClassLogger();
-            AmazonAccessKeyId = GetAppSetting<string>("AmazonAccessKeyId");
-            AmazonSecretKey = GetAppSetting<string>("AmazonSecretKey");
-            AmazonAssociateTag = GetAppSetting<string>("AmazonAssociateTag");
-            UserAgent = GetAppSetting<string>("UserAgent");
-            RoviApiKey = GetAppSetting<string>("RoviApiKey");
-            RoviApiSecret = GetAppSetting<string>("RoviApiSecret");
-        }
+            var configurationBuilder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
-        private T GetAppSetting<T>(string key)
-        {
-            var appSetting = ConfigurationManager.AppSettings[key];
+            Configuration = configurationBuilder.Build();
+            AmazonAccessKeyId = Configuration["Amazon:AccessKeyId"];
+            AmazonSecretKey = Configuration["Amazon:SecretKey"];
+            AmazonAssociateTag = Configuration["Amazon:AssociateTag"];
+            UserAgent = Configuration["UserAgent"];
+            RoviApiKey = Configuration["Rovi:ApiKey"];
+            RoviApiSecret = Configuration["Rovi:ApiSecret"];
+            MusicBrainzUrl = Configuration["MusicBrainz:Url"];
 
-            if (String.IsNullOrEmpty(appSetting))
-            {
-                _logger.Fatal("AppSetting '{0}' does not exist or is empty.", key);
-                throw new ConfigurationErrorsException(string.Format("AppSetting '{0}' does not exist or is empty.", key));
-            }
-
-            try
-            {
-                return (T)Convert.ChangeType(appSetting, typeof(T));
-            }
-            catch
-            {
-                _logger.Fatal("AppSetting '{0}' must be of type {1}.", key, typeof(T).Name);
-                throw new ConfigurationErrorsException(string.Format("AppSetting '{0}' must be of type {1}.", key, typeof(T).Name));
-            }
-        }
-
-        private T GetAppSetting<T>(string key, T defaultValue)
-        {
-            var appSetting = ConfigurationManager.AppSettings[key];
-
-            if (String.IsNullOrEmpty(appSetting))
-            {
-                _logger.Warn("AppSetting '{0}' does not exist or is empty.  Defaulting To: {1}", key, defaultValue);
-                return defaultValue;
-            }
-
-            try
-            {
-                return (T)Convert.ChangeType(appSetting, typeof(T));
-            }
-            catch
-            {
-                _logger.Warn("AppSetting '{0}' must be of type {1}.  Defaulting To: {2}", key, typeof(T).Name, defaultValue);
-            }
-
-            return defaultValue;
         }
     }
 }

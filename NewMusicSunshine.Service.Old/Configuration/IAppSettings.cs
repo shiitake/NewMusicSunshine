@@ -10,6 +10,5 @@ namespace NewMusicSunshine.Service.Configuration
         string UserAgent { get; }
         string RoviApiKey { get; }
         string RoviApiSecret { get; }
-        string MusicBrainzUrl { get; }
     }
 }
